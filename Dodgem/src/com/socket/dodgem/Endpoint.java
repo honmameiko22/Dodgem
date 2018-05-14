@@ -2,6 +2,7 @@ package com.socket.dodgem;
 
 
 import java.io.IOException;
+
 import com.socket.dodgem.Json;
 
 import java.sql.*;
@@ -49,10 +50,8 @@ public class Endpoint {
 	// 当客户端连接进来时自动激发该方法
 	@OnOpen
 	public void start(Session session, EndpointConfig config) {
-		System.out.print("come");
+		System.out.println("come here");
 		this.session = session;
-		//,@PathParam("param")String  param
-	//	System.out.println(session.getId()+"#############");
 		
 		// 将WebSocket客户端会话添加到集合中
 		clientSet.add(this);
@@ -96,8 +95,8 @@ public class Endpoint {
 	
 	// 每当收到客户端消息时自动激发该方法
 	@OnMessage
-	public void incoming(String message) throws JSONException, InstantiationException, IllegalAccessException, ClassNotFoundException, SQLException {
-		System.out.print("incoming msg");
+	public void incoming(String message) throws InstantiationException, IllegalAccessException, ClassNotFoundException, JSONException, SQLException  {
+		System.out.print("incoming msg="+message);
 		if(message.charAt(0)=='{'){
 			JSONcheck(message);
 		}
@@ -106,18 +105,21 @@ public class Endpoint {
 				broadcast(message, opponent);
 		}
 	}
+	
 	//判断请求
 	public void JSONcheck(String jsonstr) throws JSONException, InstantiationException, IllegalAccessException, ClassNotFoundException, SQLException{
 		JSONObject command= new JSONObject(jsonstr);
 		String value=command.getString("tag");
 		//tag==注册
-		if(value=="register"){
-			Regi(command.getString("name"), command.getString("password"));
+		//System.out.println(value);
+		if(value.equals("signup")){
+			Regi(command.getString("username"), command.getString("password"));
 		}
 		//tag==登陆
-		else if(value=="login"){
-			
+		else if(value.equals("login")){
+			Login(command.getString("username"), command.getString("password"));
 		}
+		//留言板
 		
 	}
 	
@@ -214,11 +216,20 @@ public class Endpoint {
 		Db create=new Db();
 		int ret=create.CreateUsr(myname, pw);
         //存在该用户，返回给用户一个错误信息
-        if(ret==1) tag="success";
-        else tag="fail";
+        if(ret==1) tag="fail";
+        else tag="success";
 		JSONObject jsonObject = new JSONObject();  
 		jsonObject.put("tag", tag);  
 		broadcast(jsonObject.toString(), myId);
-        
+	}
+	public void Login(String myname, String pw) throws InstantiationException, IllegalAccessException, ClassNotFoundException, SQLException, JSONException{
+		Db create=new Db();
+		int ret=create.login(myname, pw);
+		if(ret==1) tag="success";
+		else if(ret==-1) tag="notexist";
+		else if(ret==0) tag="fail";
+		JSONObject jsonObject = new JSONObject();  
+		jsonObject.put("tag", tag);  
+		broadcast(jsonObject.toString(), myId);
 	}
 }

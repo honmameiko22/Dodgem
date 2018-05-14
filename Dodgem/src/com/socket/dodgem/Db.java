@@ -15,21 +15,24 @@ public class Db {
 	private Connection conn;
 	private Statement stmt;
 
-	public Db() throws InstantiationException, IllegalAccessException, ClassNotFoundException, SQLException{
+	public Db(){
+	}
+	
+	public int CreateUsr(String myname, String pw) throws InstantiationException, IllegalAccessException, ClassNotFoundException, SQLException{
+        System.out.println("create user...");
 		Class.forName(driverName).newInstance(); 
 		connUrl = "jdbc:mysql://localhost/" + DBName + "?user=" + DBUser + "&password=" + DBPassword;  
 		conn = DriverManager.getConnection(connUrl);  
         stmt = conn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE,ResultSet.CONCUR_UPDATABLE);
-	}
-	
-	public int CreateUsr(String myname, String pw) throws InstantiationException, IllegalAccessException, ClassNotFoundException, SQLException{
-        String query_sql="select password from usr where name=" +myname ;
+
+		String query_sql="select password from usr where name='"+myname+"'" ;
         ResultSet rs= stmt.executeQuery(query_sql); 
         int flag=0;
         while(rs.next()){
         	flag=1;
         	break;
         }
+        System.out.println("flag="+flag);
         //不存在该用户，则存入数据库
         if(flag==0){
         	 String insert_sql = "insert into usr values('"+myname+"','"+pw+"')";
@@ -37,24 +40,27 @@ public class Db {
         }
       	conn.close();
     	stmt.close();
-    	rs.close();
+    //	rs.close();
         return flag;
 	}
-	public   String login(String myname, String pw)throws InstantiationException, IllegalAccessException, ClassNotFoundException, SQLException {
-		  
-		  try {   
-			  String sql = "select * from usr where name="+myname+" and password="+pw ;//拼接进去
-			  ResultSet rs = stmt.executeQuery(sql);  //查询语句
-		   if(rs.next()){
-			   return rs.getString(2)+"登入成功";//第几列？？？
-		   }
-		   return "登录失败，用户名或密码错误";
-		   
-		  }catch (SQLException e) {
-		   return "登录异常";
-		  } finally {
-			  conn.close(); 
-		      stmt.close();
-		  }
+	public int login(String myname, String pw)throws InstantiationException, IllegalAccessException, ClassNotFoundException, SQLException {
+        System.out.println("finding user...");
+		Class.forName(driverName).newInstance(); 
+		connUrl = "jdbc:mysql://localhost/" + DBName + "?user=" + DBUser + "&password=" + DBPassword;  
+		conn = DriverManager.getConnection(connUrl);  
+        stmt = conn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE,ResultSet.CONCUR_UPDATABLE);
+		
+		String sql = "select password from usr where name='"+myname+"'" ;//拼接进去
+		ResultSet rs = stmt.executeQuery(sql);  //查询语句
+		System.out.println("1n");
+		int flag=-1;
+		 while(rs.next()){
+			 flag=0;
+			  if(rs.getString("password").equals(pw)) flag=1;
 		 }
+	
+		conn.close(); 
+		stmt.close();
+		return flag;
+	}
 }

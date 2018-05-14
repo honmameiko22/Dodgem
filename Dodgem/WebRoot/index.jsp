@@ -25,22 +25,19 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
   
 	<div style="width:600px;height:240px;
 	overflow-y:auto;border:1px solid #333;" id="show"></div>
-
+	<button onclick="sendMsg();"></button>
 
    	<script type="text/javascript">
 // 创建WebSocket对象
-
+alert("socket?");
 var webSocket = new WebSocket("ws://localhost:8080/Dodgem/play");
-
+alert("socket open");
 
 var sendMsg = function()
 {
-	var inputElement;
-		inputElement = document.getElementById('msg');
-		webSocket.send(inputElement.value);
-	// 发送消息
-	// 清空单行文本框
-	inputElement.value = "";
+	alert("111");
+	webSocket.send("me");
+	alert("222");
 }
 /*global event listening
  document.onkeydown=function(e){   
