@@ -37,13 +37,15 @@ public class Endpoint {
 	private static final CopyOnWriteArrayList<Endpoint> clientSet = new CopyOnWriteArrayList<Endpoint>();
 	// 定义一个成员变量，记录WebSocket客户端的聊天昵称
 	private String tag;
+	private Db create;
 //	private String nickname;
 	private int opponent=-1;
 	//记录状态
 	// 定义一个成员变量，记录与WebSocket之间的会话
 	private Session session;
 	
-	public Endpoint() {
+	public Endpoint() throws InstantiationException, IllegalAccessException, ClassNotFoundException, SQLException {
+		create = new Db();
 		this.myId = connectionIds.getAndIncrement();
 	}
 	
@@ -84,7 +86,6 @@ public class Endpoint {
 		if(waitSet.size()>0&&waitSet.get(0).myId==myId)
 			waitSet.remove(this);
 		clientSet.remove(this);
-	//	String message = new String( "玩家"+myId+"离开了游戏厅！");
 		if(opponent!=-1){
 			JSONLeave(opponent);
 		}else{}
@@ -111,7 +112,6 @@ public class Endpoint {
 		JSONObject command= new JSONObject(jsonstr);
 		String value=command.getString("tag");
 		//tag==注册
-		//System.out.println(value);
 		if(value.equals("signup")){
 			Regi(command.getString("username"), command.getString("password"));
 		}
@@ -120,6 +120,12 @@ public class Endpoint {
 			Login(command.getString("username"), command.getString("password"));
 		}
 		//留言板
+		else if(value.equals("board")){
+			View();
+		}
+		else if(value.equals("boardpost")){
+			Post(command.getString("command"));
+		}
 		
 	}
 	
@@ -213,7 +219,6 @@ public class Endpoint {
 
 	public void Regi(String myname, String pw) throws InstantiationException, IllegalAccessException, ClassNotFoundException, SQLException, JSONException{
 		System.out.print("in database");
-		Db create=new Db();
 		int ret=create.CreateUsr(myname, pw);
         //存在该用户，返回给用户一个错误信息
         if(ret==1) tag="fail";
@@ -223,7 +228,6 @@ public class Endpoint {
 		broadcast(jsonObject.toString(), myId);
 	}
 	public void Login(String myname, String pw) throws InstantiationException, IllegalAccessException, ClassNotFoundException, SQLException, JSONException{
-		Db create=new Db();
 		int ret=create.login(myname, pw);
 		if(ret==1) tag="success";
 		else if(ret==-1) tag="notexist";
@@ -231,5 +235,11 @@ public class Endpoint {
 		JSONObject jsonObject = new JSONObject();  
 		jsonObject.put("tag", tag);  
 		broadcast(jsonObject.toString(), myId);
+	}
+	public void View(){
+		
+	}
+	public void Post(String msg){
+		
 	}
 }
